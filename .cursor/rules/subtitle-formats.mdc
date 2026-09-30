@@ -26,9 +26,10 @@ Same-timeline speakers and bilingual text belong in **one** SRT cue, **one** ASS
 
 ## Conversion behavior (current code)
 
-- **ASS → SRT**: strip `{...}` tags; `\N` / `\n` → newline; preserve line structure; no speaker splitting.
-- **SRT → txt**: emit all cue text lines; strip `<...>` tags only.
-- **LRC / ASS export**: not implemented yet; new writers should follow `docs/subtitle-formats.md` (LRC = single timestamp line, `- ` and ` | ` on that line).
+- **ASS → SRT/txt/lrc**: strip `{...}` tags; `\N` / `\n` → newline; no speaker splitting; LRC uses one timestamp per Dialogue.
+- **SRT → txt/lrc**: txt emits all cue text lines (`<...>` stripped); LRC one line per cue (` | ` for two-line bilingual).
+- **LRC → SRT/txt**: SRT end times from next timestamp; txt drops tags and metadata.
+- **No `convert --to ass`**.
 
 ## Do not
 

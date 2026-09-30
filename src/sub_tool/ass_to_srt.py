@@ -43,14 +43,17 @@ def clean_ass_text(text: str) -> str:
     return "\n".join(lines)
 
 
-def parse_ass_content(content: str) -> str:
+DialogueCue = tuple[str, str, str]
+
+
+def parse_ass_dialogues(content: str) -> list[DialogueCue]:
     if content.startswith("\ufeff"):
         content = content[1:]
 
     events_section = False
     start_idx, end_idx, text_idx = 1, 2, 9
     num_cols = 10
-    dialogues: list[tuple[str, str, str]] = []
+    dialogues: list[DialogueCue] = []
 
     for line in content.splitlines():
         line_str = line.strip()
@@ -86,9 +89,15 @@ def parse_ass_content(content: str) -> str:
                     dialogues.append((start_srt, end_srt, text))
 
     dialogues.sort(key=lambda x: (x[0], x[1]))
+    return dialogues
 
+
+def dialogues_to_srt(dialogues: list[DialogueCue]) -> str:
     srt_blocks = []
     for i, (start, end, text) in enumerate(dialogues, 1):
         srt_blocks.append(f"{i}\n{start} --> {end}\n{text}")
-
     return "\n\n".join(srt_blocks) + ("\n" if srt_blocks else "")
+
+
+def parse_ass_content(content: str) -> str:
+    return dialogues_to_srt(parse_ass_dialogues(content))

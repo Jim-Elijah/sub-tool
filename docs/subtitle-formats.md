@@ -9,16 +9,18 @@ These conventions apply to files processed by **sub-tool** (`.srt`, `.ass`, and 
 3. **Multi-speaker (same cue)** — Prefer **one speaker per line**, each line starting with **`- `**. Optional label: **`[SPEAKER_ID]: - text`**. Compact same-line form: **`- utterance A - utterance B`** (space-separated `- ` segments). Use **`|`** only for **bilingual pairs within one utterance**, not between speakers.
 4. **ASS → SRT** — Line breaks from `\N` / `\n` in ASS text are kept; `{...}` override tags are stripped; speakers are not split or merged automatically.
 5. **`srt --swap`** — Reverses **all** text lines in each cue (intended for two-line bilingual cues). Do not rely on it when a cue mixes many speaker lines unless you want every line order flipped.
-6. **`convert --to txt`** — Exports every text line from SRT cues (including `- ` and speaker tags); strips simple HTML-like `<...>` tags only.
+6. **`convert --to txt`** — Exports dialogue text from SRT, ASS, or LRC (SRT: every cue text line, strips `<...>` tags; ASS: cleaned dialogue lines; LRC: text after each timestamp).
+7. **`convert --to lrc`** — One `[mm:ss.xx]` line per cue; two-line non-speaker cues become `line1 | line2`; other multi-line cues join with spaces (see LRC section).
+8. **`convert --to srt` from LRC** — End time is the next line’s start minus 1 ms, or start + 3 s for the last cue.
 
 ## Supported formats (in this project)
 
 | Extension | Role in sub-tool |
 |-----------|-------------------|
-| `.ass` | Source for `convert --to srt` |
-| `.srt` | Target from ASS; source for `convert --to txt` and `srt` edits |
-| `.lrc` | Planned convert target (conventions below apply when implemented) |
-| `.txt` | Plain text export from SRT (not a timed subtitle format) |
+| `.ass` | Source for `convert --to srt`, `txt`, or `lrc` (not a convert target) |
+| `.srt` | Target from ASS/LRC; source for `convert --to txt`/`lrc` and `srt` edits |
+| `.lrc` | Target from SRT/ASS; source for `convert --to srt`/`txt` |
+| `.txt` | Plain text export from SRT/ASS/LRC (not a timed subtitle format) |
 
 ---
 

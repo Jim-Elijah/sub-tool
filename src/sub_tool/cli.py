@@ -41,15 +41,16 @@ def build_parser() -> argparse.ArgumentParser:
         "--to",
         required=True,
         metavar="FMT",
-        help="Target format: srt, txt, lrc, or ass",
+        help="Target format: srt, txt, or lrc",
     )
 
     srt = subparsers.add_parser(
         "srt",
         help="Edit SRT files (re-number, swap bilingual lines)",
         description=(
-            "Re-number cues from 1. With --swap, reverse text lines in each cue "
-            "(in-place when --output is omitted). Does not convert to other formats."
+            "Re-number cues from 1. With --swap, reverse text lines in each cue. "
+            "With --shift, offset all cue times. In-place when --output is omitted. "
+            "Does not convert to other formats."
         ),
     )
     _add_shared_io_args(srt)
@@ -58,6 +59,13 @@ def build_parser() -> argparse.ArgumentParser:
         "--swap",
         action="store_true",
         help="Swap top and bottom lines in bilingual subtitles",
+    )
+    srt.add_argument(
+        "--shift",
+        type=int,
+        default=0,
+        metavar="MS",
+        help="Shift cue times by MS milliseconds (negative allowed)",
     )
 
     return parser
@@ -191,6 +199,7 @@ def _run_srt(args: argparse.Namespace) -> int:
             input_path=args.path,
             output_dir=args.output,
             swap=args.swap,
+            shift_ms=args.shift,
         )
 
     return _run_each_file("srt", files, process)

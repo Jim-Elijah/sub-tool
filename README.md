@@ -43,22 +43,23 @@ Format-specific subcommands (`ass`, `lrc`, …) can be added later for operation
 
 ## Convert (`convert --to`)
 
-Supported targets: `srt`, `txt`, `lrc`, `ass` (only some source→target pairs are implemented).
+Supported targets: `srt`, `txt`, `lrc`. ASS is a **source only** (`convert --to ass` is not supported).
 
-| `--to` | Implemented sources | Default output |
-|--------|---------------------|----------------|
-| `srt` | `.ass` | `name.srt` next to source |
-| `txt` | `.srt` | `name.txt` next to source |
-| `lrc`, `ass` | — | not implemented yet |
+| `--to` | Sources (by extension) | Default output |
+|--------|------------------------|----------------|
+| `srt` | `.ass`, `.lrc` | `name.srt` next to source |
+| `txt` | `.srt`, `.ass`, `.lrc` | `name.txt` next to source |
+| `lrc` | `.srt`, `.ass` | `name.lrc` next to source |
 
 ```bash
 sub-tool convert --to srt path/to/subtitle.ass
+sub-tool convert --to lrc path/to/subtitle.srt
+sub-tool convert --to txt path/to/subtitle.ass
 sub-tool convert --to srt path/to/dir -L 1
-sub-tool convert --to txt path/to/subtitle.srt
 sub-tool convert --to txt path/to/dir --output path/to/out
 ```
 
-Bilingual (multi-line) cues are preserved when converting ASS → SRT.
+LRC → SRT uses the next line’s timestamp (minus 1 ms) as each cue’s end time; the last cue gets a 3 s default duration. SRT/ASS → LRC follows [docs/subtitle-formats.md](docs/subtitle-formats.md) (one timestamp line per cue; two-line bilingual → ` | `).
 
 ## Subtitle format conventions
 
@@ -66,11 +67,12 @@ Authoring rules for **bilingual** and **same-timeline multi-speaker** cues (SRT,
 
 ## SRT edits (`srt`)
 
-Does **not** convert formats. Re-number cues from 1; `--swap` reverses **all** text lines within each cue (typical use: swap two bilingual lines). See [docs/subtitle-formats.md](docs/subtitle-formats.md).
+Does **not** convert formats. Re-number cues from 1; `--swap` reverses **all** text lines within each cue (typical use: swap two bilingual lines); `--shift MS` offsets all cue times. See [docs/subtitle-formats.md](docs/subtitle-formats.md).
 
 ```bash
 sub-tool srt path/to/subtitle.srt
 sub-tool srt path/to/subtitle.srt --swap
+sub-tool srt path/to/subtitle.srt --shift 500
 sub-tool srt path/to/dir --swap --output path/to/out
 ```
 

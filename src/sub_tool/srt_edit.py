@@ -7,6 +7,7 @@ from pathlib import Path
 
 from sub_tool.io import read_text, write_text
 from sub_tool.outputs import resolve_output_path
+from sub_tool.timestamp import format_srt_range, parse_srt_range
 
 COMMAND = "srt"
 COMMAND_SWAP = "srt-swap"
@@ -67,13 +68,24 @@ def parse_srt_content(content: str) -> list[tuple[str, list[str]]]:
     return blocks
 
 
-def process_srt_content(content: str, *, swap: bool) -> str:
+def process_srt_content(
+    content: str,
+    *,
+    swap: bool,
+    shift_ms: int = 0,
+) -> str:
     blocks = parse_srt_content(content)
     output_blocks: list[str] = []
 
     for i, (time_str, text_lines) in enumerate(blocks, 1):
         if swap and len(text_lines) >= 2:
             text_lines = list(reversed(text_lines))
+
+        if shift_ms:
+            start_ms, end_ms = parse_srt_range(time_str)
+            start_ms += shift_ms
+            end_ms += shift_ms
+            time_str = format_srt_range(start_ms, end_ms)
 
         text_str = "\n".join(text_lines)
         output_blocks.append(f"{i}\n{time_str}\n{text_str}")
@@ -87,9 +99,10 @@ def generate_srt_edit(
     input_path: Path,
     output_dir: Path | None,
     swap: bool,
+    shift_ms: int = 0,
 ) -> Path:
     content = read_text(srt_file)
-    new_content = process_srt_content(content, swap=swap)
+    new_content = process_srt_content(content, swap=swap, shift_ms=shift_ms)
     out_path = srt_output_path_for(
         srt_file,
         input_path=input_path,

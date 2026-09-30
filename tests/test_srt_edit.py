@@ -26,6 +26,15 @@ Bottom
     assert "Bottom\nTop" in out
 
 
+def test_shift_ms() -> None:
+    srt = """1
+00:00:01,000 --> 00:00:02,000
+Hi
+"""
+    out = process_srt_content(srt, swap=False, shift_ms=500)
+    assert "00:00:01,500 --> 00:00:02,500" in out
+
+
 def test_in_place_edit(tmp_path: Path) -> None:
     srt = tmp_path / "demo.srt"
     srt.write_text(
