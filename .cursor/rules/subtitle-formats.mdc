@@ -1,0 +1,37 @@
+---
+description: Bilingual and multi-speaker conventions for SRT, ASS, LRC in sub-tool
+globs: docs/subtitle-formats.md,**/*.{srt,ass,lrc},src/sub_tool/**/*.{py}
+alwaysApply: false
+---
+
+# Subtitle format conventions
+
+Full examples and rationale: **`docs/subtitle-formats.md`**. When adding or changing conversion/editing logic, match these rules.
+
+## One time range, one unit
+
+Same-timeline speakers and bilingual text belong in **one** SRT cue, **one** ASS `Dialogue:` line, or **one** LRC timestamp line. Do not invent parallel tracks in SRT/LRC.
+
+## Bilingual
+
+- Prefer **two lines** (primary, then translation).
+- Single-line bilingual: **` | `** between languages.
+- `srt --swap` reverses **all** text lines in a cue (meant for two-line bilingual, not arbitrary speaker blocks).
+
+## Multi-speaker
+
+- Prefer **one line per speaker**, prefix **`- `**.
+- Optional **`[SPEAKER_ID]: - text`**.
+- Compact: **`- A - B`** on one line; **` | `** only inside one utterance's bilingual pair.
+
+## Conversion behavior (current code)
+
+- **ASS → SRT**: strip `{...}` tags; `\N` / `\n` → newline; preserve line structure; no speaker splitting.
+- **SRT → txt**: emit all cue text lines; strip `<...>` tags only.
+- **LRC / ASS export**: not implemented yet; new writers should follow `docs/subtitle-formats.md` (LRC = single timestamp line, `- ` and ` | ` on that line).
+
+## Do not
+
+- Assume players parse `[SPEAKER_xx]` or `|`—they are project conventions for authoring and tooling.
+- Change `--swap` to mean “swap only line 1 and 2” without an explicit flag and tests.
+- Emit LRC with duplicate timestamps as the default bilingual strategy.

@@ -60,9 +60,13 @@ sub-tool convert --to txt path/to/dir --output path/to/out
 
 Bilingual (multi-line) cues are preserved when converting ASS → SRT.
 
+## Subtitle format conventions
+
+Authoring rules for **bilingual** and **same-timeline multi-speaker** cues (SRT, ASS, planned LRC), with examples: [docs/subtitle-formats.md](docs/subtitle-formats.md).
+
 ## SRT edits (`srt`)
 
-Does **not** convert formats. Re-number cues from 1; `--swap` reverses text lines within each cue.
+Does **not** convert formats. Re-number cues from 1; `--swap` reverses **all** text lines within each cue (typical use: swap two bilingual lines). See [docs/subtitle-formats.md](docs/subtitle-formats.md).
 
 ```bash
 sub-tool srt path/to/subtitle.srt
