@@ -1,0 +1,26 @@
+---
+description: Conventional Commits message format, splitting mixed types, no Cursor attribution
+alwaysApply: false
+---
+
+# Conventional Commits
+
+When asked to generate a commit message or create a commit, follow Conventional Commits.
+
+## Format
+
+```
+type(scope): imperative subject
+
+- User-facing detail.
+- Another concrete detail.
+```
+
+## Rules
+
+1. **Types** (only): `build`, `chore`, `ci`, `docs`, `feat`, `fix`, `perf`, `refactor`, `revert`, `style`, `test`.
+2. **Subject**: English, imperative, lowercase start, no trailing period. Header ≤ 200 chars.
+3. **Scope**: optional (e.g. `cli`, `ass`, `srt`). Omit when repo-wide.
+4. **Body**: optional bullets after a blank line.
+5. **Split**: one commit per type when the diff spans multiple types.
+6. **Trailers**: never add Cursor or other agent attribution.

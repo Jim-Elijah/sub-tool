@@ -1,0 +1,66 @@
+---
+description: sub-tool is a router + subcommands CLI; each feature owns its own args
+alwaysApply: true
+---
+
+# CLI: router + subcommands
+
+`sub-tool` is a toolkit. The root CLI only routes; each capability is a **subcommand** with its own parser and flags.
+
+## Required shape
+
+```text
+sub-tool <verb> [args...]
+```
+
+Examples: `sub-tool convert --to srt ...`, `sub-tool convert --to txt ...`, `sub-tool srt ...`.
+
+## Do
+
+- Add cross-format work under **`convert --to`** (extend `convert.py`); add a **new subparser** only for format-specific edits (e.g. `srt`, future `ass`).
+- Keep **feature-specific** options on that subcommand (`--to` for `convert`; `--swap` for `srt` only).
+- Put business logic in a module (e.g. `ass_to_srt.py`); `cli.py` parses args and calls into it.
+- Reuse shared path discovery (`subtitles.resolve_subtitles`) when the feature takes a file/dir path.
+- Reuse shared output resolution (`outputs.resolve_output_path`) for `--output`.
+- Add shared I/O flags via `_add_shared_io_args` (not by copying argparse blocks).
+- Prefer a short **verb** for the subcommand name when possible.
+- Document the subcommand in README when adding user-facing behavior.
+
+## Shared options
+
+Most file/dir features share these flags (see README **Shared options**):
+
+| Flag | Meaning |
+|------|---------|
+| `path` | Subtitle file, or directory of subtitles (recursive by default) |
+| `--include PATTERN` | Filename glob when `path` is a directory (repeatable) |
+| `-L` / `--depth N` | Max directory depth like `tree -L` (`1` = current dir only) |
+| `--output DIR` | Output **directory** (never a file path) |
+
+### Shared `--output` naming
+
+| Situation | Output file name |
+|-----------|------------------|
+| No `--output` | Subcommand default next to the source (`convert --to srt`: `name.srt`; `convert --to txt`: `name.txt`; `srt`: in-place `name.srt`) |
+| `--output` resolves to the same path as the CLI `path` arg | `{stem}.{subcommand}{suffix}` |
+| `--output` is a different directory | `{stem}{suffix}` under that directory |
+
+If the computed path would still overwrite the source file, fall back to `{stem}.{subcommand}{suffix}`.
+
+Do **not** reimplement this naming per feature; extend `outputs.py` if the rules change.
+
+## Don't
+
+- Do **not** hang feature flags on the root parser (`sub-tool --swap ...`).
+- Do **not** dump unrelated options into one flat argparse namespace shared by all features.
+- Do **not** implement a second top-level entry script per feature unless the user asks.
+- Do **not** treat `--output` as a file path.
+- Do **not** reintroduce legacy `-e` / `--extract-dir` sibling-directory output; use `--output`.
+
+## Checklist for a new feature
+
+1. Subparser + help/description on the subcommand.
+2. Shared path / `--include` / `--depth` / `--output` via `_add_shared_io_args` where applicable.
+3. Handler in `cli.py` that dispatches on `args.command`.
+4. Library module with the real work; raise `SubToolError` for expected failures.
+5. Tests for parser/dispatch, output resolution, and the feature module.

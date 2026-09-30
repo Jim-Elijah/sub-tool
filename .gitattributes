@@ -1,0 +1,28 @@
+# Normalize line endings (matches CI and ruff line-ending = auto on Linux/macOS)
+* text=auto eol=lf
+
+*.py            text diff=python
+*.pyi           text diff=python
+*.md            text diff=markdown
+*.toml          text
+*.yaml          text
+*.yml           text
+*.json          text
+*.sh            text
+
+*.png           binary
+*.jpg           binary
+*.jpeg          binary
+*.gif           binary
+*.webp          binary
+*.ico           binary
+*.woff          binary
+*.woff2         binary
+
+# Subtitle samples are text; avoid linguist treating them as generated noise
+*.srt           text linguist-detectable
+*.ass           text linguist-detectable
+*.lrc           text linguist-detectable
+
+# Lockfile: stable diffs, no merge conflict markers from CRLF
+uv.lock         text merge=binary
