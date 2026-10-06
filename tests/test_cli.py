@@ -53,3 +53,24 @@ def test_missing_path_exits_nonzero(
     captured = capsys.readouterr()
     assert exit_code == 1
     assert "path not found" in captured.err
+
+
+def test_srt_drop_notes_flag_parses() -> None:
+    args = build_parser().parse_args(["srt", "file.srt", "--drop-notes"])
+    assert args.command == "srt"
+    assert args.drop_notes is True
+
+
+def test_srt_drop_notes_rejects_monolingual(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    srt = tmp_path / "mono.srt"
+    srt.write_text(
+        "1\n00:00:01,000 --> 00:00:02,000\nOnly\n",
+        encoding="utf-8",
+    )
+    exit_code = main(["srt", str(srt), "--drop-notes", "--output", str(tmp_path)])
+    captured = capsys.readouterr()
+    assert exit_code == 1
+    assert "--drop-notes requires a bilingual" in captured.err

@@ -1,12 +1,12 @@
 ---
 description: Bilingual and multi-speaker conventions for SRT, ASS, LRC in sub-tool
-globs: docs/subtitle-formats.md,**/*.{srt,ass,lrc},src/sub_tool/**/*.{py}
+globs: docs/subtitle-formats.md,docs/srt-format.md,**/*.{srt,ass,lrc},src/sub_tool/**/*.{py}
 alwaysApply: false
 ---
 
 # Subtitle format conventions
 
-Full examples and rationale: **`docs/subtitle-formats.md`**. When adding or changing conversion/editing logic, match these rules.
+SRT layouts and edit rules: **`docs/srt-format.md`**. ASS/LRC and cross-format rules: **`docs/subtitle-formats.md`**.
 
 ## One time range, one unit
 
@@ -16,7 +16,8 @@ Same-timeline speakers and bilingual text belong in **one** SRT cue, **one** ASS
 
 - Prefer **two lines** (primary, then translation).
 - Single-line bilingual: **` | `** between languages.
-- `srt --swap` reverses **all** text lines in a cue (meant for two-line bilingual, not arbitrary speaker blocks).
+- `srt --swap` / `--drop-notes`: follow **`docs/srt-format.md`** and **`srt_cue.py`**.
+- Bilingual detection / `--swap` use **`srt_cue.py`** (plain two lines, ` | `, same-speaker pairs, stacked speaker halves).
 
 ## Multi-speaker
 

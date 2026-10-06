@@ -48,9 +48,10 @@ def build_parser() -> argparse.ArgumentParser:
         "srt",
         help="Edit SRT files (re-number, swap bilingual lines)",
         description=(
-            "Re-number cues from 1. With --swap, reverse text lines in each cue. "
-            "With --shift, offset all cue times. In-place when --output is omitted. "
-            "Does not convert to other formats."
+            "Re-number cues from 1. With --swap, swap primary/translation per "
+            "docs/srt-format.md. With --shift, offset all cue times. With "
+            "--drop-notes, remove translator-note cues from bilingual files. "
+            "In-place when --output is omitted. Does not convert to other formats."
         ),
     )
     _add_shared_io_args(srt)
@@ -66,6 +67,14 @@ def build_parser() -> argparse.ArgumentParser:
         default=0,
         metavar="MS",
         help="Shift cue times by MS milliseconds (negative allowed)",
+    )
+    srt.add_argument(
+        "--drop-notes",
+        action="store_true",
+        help=(
+            "Drop single-line cues (translator notes) from bilingual SRTs; "
+            "errors on monolingual files"
+        ),
     )
 
     return parser
@@ -200,6 +209,7 @@ def _run_srt(args: argparse.Namespace) -> int:
             output_dir=args.output,
             swap=args.swap,
             shift_ms=args.shift,
+            drop_notes=args.drop_notes,
         )
 
     return _run_each_file("srt", files, process)

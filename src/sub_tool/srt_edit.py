@@ -5,13 +5,21 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
+from sub_tool.errors import SubToolError
 from sub_tool.io import read_text, write_text
 from sub_tool.outputs import resolve_output_path
+from sub_tool.srt_cue import (
+    cue_is_bilingual,
+    cue_is_translator_note,
+    swap_cue_text_lines,
+)
 from sub_tool.timestamp import format_srt_range, parse_srt_range
 
 COMMAND = "srt"
 COMMAND_SWAP = "srt-swap"
 OUTPUT_SUFFIX = ".srt"
+
+SrtBlock = tuple[str, list[str]]
 
 
 def srt_output_path_for(
@@ -36,7 +44,7 @@ def srt_output_path_for(
     )
 
 
-def parse_srt_content(content: str) -> list[tuple[str, list[str]]]:
+def parse_srt_content(content: str) -> list[SrtBlock]:
     if content.startswith("\ufeff"):
         content = content[1:]
 
@@ -46,7 +54,7 @@ def parse_srt_content(content: str) -> list[tuple[str, list[str]]]:
     )
 
     raw_blocks = re.split(r"\n\s*\n", content)
-    blocks: list[tuple[str, list[str]]] = []
+    blocks: list[SrtBlock] = []
 
     for raw in raw_blocks:
         lines = [line.strip() for line in raw.split("\n") if line.strip()]
@@ -68,18 +76,40 @@ def parse_srt_content(content: str) -> list[tuple[str, list[str]]]:
     return blocks
 
 
+def is_bilingual_srt(blocks: list[SrtBlock]) -> bool:
+    """True when a strict majority of cues match project bilingual conventions."""
+    if not blocks:
+        return False
+    bilingual = sum(1 for _, lines in blocks if cue_is_bilingual(lines))
+    return bilingual > len(blocks) / 2
+
+
 def process_srt_content(
     content: str,
     *,
     swap: bool,
     shift_ms: int = 0,
+    drop_notes: bool = False,
 ) -> str:
     blocks = parse_srt_content(content)
+
+    if drop_notes:
+        if not is_bilingual_srt(blocks):
+            raise SubToolError(
+                "--drop-notes requires a bilingual SRT "
+                "(most cues must match bilingual conventions; see docs/srt-format.md)"
+            )
+        blocks = [
+            (time_str, lines)
+            for time_str, lines in blocks
+            if not cue_is_translator_note(lines)
+        ]
+
     output_blocks: list[str] = []
 
     for i, (time_str, text_lines) in enumerate(blocks, 1):
-        if swap and len(text_lines) >= 2:
-            text_lines = list(reversed(text_lines))
+        if swap:
+            text_lines = swap_cue_text_lines(text_lines)
 
         if shift_ms:
             start_ms, end_ms = parse_srt_range(time_str)
@@ -100,9 +130,15 @@ def generate_srt_edit(
     output_dir: Path | None,
     swap: bool,
     shift_ms: int = 0,
+    drop_notes: bool = False,
 ) -> Path:
     content = read_text(srt_file)
-    new_content = process_srt_content(content, swap=swap, shift_ms=shift_ms)
+    new_content = process_srt_content(
+        content,
+        swap=swap,
+        shift_ms=shift_ms,
+        drop_notes=drop_notes,
+    )
     out_path = srt_output_path_for(
         srt_file,
         input_path=input_path,

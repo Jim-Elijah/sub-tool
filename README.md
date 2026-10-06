@@ -37,7 +37,7 @@ uv run sub-tool --help
 | Command | Purpose |
 |---------|---------|
 | `convert --to FMT` | Change format or export to plain text (source from file extension) |
-| `srt` | Edit `.srt` files only (re-number, optional bilingual line swap) |
+| `srt` | Edit `.srt` files only (re-number, optional bilingual line swap / drop notes) |
 
 Format-specific subcommands (`ass`, `lrc`, …) can be added later for operations that are not simple conversion.
 
@@ -63,16 +63,18 @@ LRC → SRT uses the next line’s timestamp (minus 1 ms) as each cue’s end ti
 
 ## Subtitle format conventions
 
-Authoring rules for **bilingual** and **same-timeline multi-speaker** cues (SRT, ASS, planned LRC), with examples: [docs/subtitle-formats.md](docs/subtitle-formats.md).
+Common **SRT** layouts and `srt` edit rules: [docs/srt-format.md](docs/srt-format.md).  
+Broader SRT / ASS / LRC conventions: [docs/subtitle-formats.md](docs/subtitle-formats.md).
 
 ## SRT edits (`srt`)
 
-Does **not** convert formats. Re-number cues from 1; `--swap` reverses **all** text lines within each cue (typical use: swap two bilingual lines); `--shift MS` offsets all cue times. See [docs/subtitle-formats.md](docs/subtitle-formats.md).
+Does **not** convert formats. Re-number cues from 1; `--swap` and `--drop-notes` follow [docs/srt-format.md](docs/srt-format.md); `--shift MS` offsets all cue times.
 
 ```bash
 sub-tool srt path/to/subtitle.srt
 sub-tool srt path/to/subtitle.srt --swap
 sub-tool srt path/to/subtitle.srt --shift 500
+sub-tool srt path/to/subtitle.srt --drop-notes
 sub-tool srt path/to/dir --swap --output path/to/out
 ```
 
