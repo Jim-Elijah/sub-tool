@@ -8,11 +8,7 @@ from sub_tool.srt_to_lrc import parse_srt_to_lrc
 
 
 def test_srt_bilingual_to_lrc() -> None:
-    srt = (
-        "1\n00:00:10,000 --> 00:00:13,500\n"
-        "Hello, world!\n"
-        "Translation here\n"
-    )
+    srt = "1\n00:00:10,000 --> 00:00:13,500\nHello, world!\nTranslation here\n"
     lrc = parse_srt_to_lrc(srt)
     assert lrc == "[00:10.00]Hello, world! | Translation here\n"
 
@@ -23,6 +19,12 @@ def test_lrc_to_srt_end_from_next_line() -> None:
     assert "00:00:10,000 --> 00:00:13,999" in srt
     assert "First line" in srt
     assert "Second line" in srt
+
+
+def test_lrc_to_srt_last_cue_duration_ms() -> None:
+    lrc = "[00:10.00]Only cue\n"
+    srt = parse_lrc_content(lrc, last_cue_ms=8000)
+    assert "00:00:10,000 --> 00:00:18,000" in srt
 
 
 def test_lrc_to_txt() -> None:

@@ -10,6 +10,7 @@ from pathlib import Path
 
 from sub_tool import __version__
 from sub_tool.convert import generate_convert, source_suffixes_for_target
+from sub_tool.lrc_to_srt import DEFAULT_LAST_CUE_MS
 from sub_tool.errors import SubToolError
 from sub_tool.srt_edit import generate_srt_edit
 from sub_tool.subtitles import SRT_SUFFIXES, resolve_subtitles
@@ -41,7 +42,17 @@ def build_parser() -> argparse.ArgumentParser:
         "--to",
         required=True,
         metavar="FMT",
-        help="Target format: srt, txt, or lrc",
+        help="Target format: srt, txt, lrc, or json",
+    )
+    convert.add_argument(
+        "--lrc-last-ms",
+        type=int,
+        default=DEFAULT_LAST_CUE_MS,
+        metavar="MS",
+        help=(
+            "When converting LRC to SRT or JSON, duration in ms for the last cue "
+            "(default: 3000)"
+        ),
     )
 
     srt = subparsers.add_parser(
@@ -188,6 +199,7 @@ def _run_convert(args: argparse.Namespace) -> int:
             to=args.to,
             input_path=args.path,
             output_dir=args.output,
+            lrc_last_ms=args.lrc_last_ms,
         )
 
     return _run_each_file("convert", files, process)

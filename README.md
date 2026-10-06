@@ -43,23 +43,30 @@ Format-specific subcommands (`ass`, `lrc`, …) can be added later for operation
 
 ## Convert (`convert --to`)
 
-Supported targets: `srt`, `txt`, `lrc`. ASS is a **source only** (`convert --to ass` is not supported).
+Supported targets: `srt`, `txt`, `lrc`, `json`. ASS is a **source only** (`convert --to ass` is not supported).
 
 | `--to` | Sources (by extension) | Default output |
 |--------|------------------------|----------------|
 | `srt` | `.ass`, `.lrc` | `name.srt` next to source |
 | `txt` | `.srt`, `.ass`, `.lrc` | `name.txt` next to source |
 | `lrc` | `.srt`, `.ass` | `name.lrc` next to source |
+| `json` | `.srt`, `.ass`, `.lrc` | `name.json` next to source |
 
 ```bash
 sub-tool convert --to srt path/to/subtitle.ass
 sub-tool convert --to lrc path/to/subtitle.srt
 sub-tool convert --to txt path/to/subtitle.ass
+sub-tool convert --to json path/to/subtitle.srt
 sub-tool convert --to srt path/to/dir -L 1
 sub-tool convert --to txt path/to/dir --output path/to/out
+sub-tool convert --to srt path/to/lyrics.lrc --lrc-last-ms 5000
 ```
 
-LRC → SRT uses the next line’s timestamp (minus 1 ms) as each cue’s end time; the last cue gets a 3 s default duration. SRT/ASS → LRC follows [docs/subtitle-formats.md](docs/subtitle-formats.md) (one timestamp line per cue; two-line bilingual → ` | `).
+| Flag | Meaning |
+|------|---------|
+| `--lrc-last-ms MS` | Last LRC cue duration when `--to` is `srt` or `json` (default: 3000) |
+
+LRC → SRT uses the next line’s timestamp (minus 1 ms) as each cue’s end time; the last cue uses `--lrc-last-ms`. JSON schema and field meanings: [docs/subtitle-formats.md](docs/subtitle-formats.md#json-convert---to-json). SRT/ASS → LRC follows the same doc (one timestamp line per cue; two-line bilingual → ` | `).
 
 ## Subtitle format conventions
 
@@ -93,7 +100,7 @@ Most subcommands accept the same input/output discovery flags:
 
 `--output` naming:
 
-- No `--output`: default next to the source (`convert --to srt` → `name.srt`; `convert --to txt` → `name.txt`; `srt` → in-place `name.srt`)
+- No `--output`: default next to the source (`convert --to srt` → `name.srt`; `convert --to txt` → `name.txt`; `convert --to json` → `name.json`; `srt` → in-place `name.srt`)
 - `--output` equals the CLI `path`: `{stem}.{command}{suffix}` (e.g. `name.convert.srt`)
 - Otherwise: `{stem}{suffix}` under that directory
 - If the computed path would overwrite the source, falls back to `{stem}.{command}{suffix}`

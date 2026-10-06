@@ -78,4 +78,18 @@ def test_lrc_to_srt(tmp_path: Path) -> None:
     lrc = tmp_path / "demo.lrc"
     lrc.write_text("[00:10.00]Only cue\n", encoding="utf-8")
     out = generate_convert(lrc, to="srt", input_path=lrc, output_dir=None)
+    assert "00:00:13,000" in out.read_text(encoding="utf-8")
     assert "Only cue" in out.read_text(encoding="utf-8")
+
+
+def test_lrc_to_srt_custom_last_ms(tmp_path: Path) -> None:
+    lrc = tmp_path / "demo.lrc"
+    lrc.write_text("[00:10.00]Only cue\n", encoding="utf-8")
+    out = generate_convert(
+        lrc,
+        to="srt",
+        input_path=lrc,
+        output_dir=None,
+        lrc_last_ms=5000,
+    )
+    assert "00:00:15,000" in out.read_text(encoding="utf-8")

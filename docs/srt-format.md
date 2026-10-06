@@ -263,6 +263,7 @@ Hello, world! | 你好，世界！
 | `srt --drop-notes` | 仅双语文件；删 §3 说明类 cue |
 | `convert --to txt` | 输出所有文本行（SRT 去 `<...>` 标签） |
 | `convert --to lrc` | 每 cue 一行；**仅** §2.1 两行无 `-`/无 SPEAKER 时变为 ` \| ` |
+| `convert --to json` | 每 cue 一条记录：`start_ms`/`end_ms` + `lines` 数组（文本行原样）；详见 [subtitle-formats.md](subtitle-formats.md) JSON 节 |
 
 参数可组合，例如：`sub-tool srt file.srt --drop-notes --swap`。
 

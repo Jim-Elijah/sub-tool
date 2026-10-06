@@ -12,16 +12,18 @@ These conventions apply to files processed by **sub-tool** (`.srt`, `.ass`, and 
 6. **`srt --drop-notes`** — On bilingual SRTs (strict majority per [srt-format.md](srt-format.md)), drops translator-note cues (single line, no ` | `, no `[SPEAKER_xx]:`). Refused on monolingual files.
 7. **`convert --to txt`** — Exports dialogue text from SRT, ASS, or LRC (SRT: every cue text line, strips `<...>` tags; ASS: cleaned dialogue lines; LRC: text after each timestamp).
 8. **`convert --to lrc`** — One `[mm:ss.xx]` line per cue; two-line non-speaker cues become `line1 | line2`; other multi-line cues join with spaces (see LRC section).
-9. **`convert --to srt` from LRC** — End time is the next line’s start minus 1 ms, or start + 3 s for the last cue.
+9. **`convert --to srt` from LRC** — End time is the next line’s start minus 1 ms, or start + `--lrc-last-ms` (default 3 s) for the last cue. The same flag sets the last cue’s end time when exporting LRC to JSON.
+10. **`convert --to json`** — Exports a timed cue list from SRT, ASS, or LRC (see JSON section). Text lines match the source cue body (SRT lines as-is; ASS after tag cleanup and `\N` → newline; LRC one line per timestamp). Does not infer bilingual or speaker structure.
 
 ## Supported formats (in this project)
 
 | Extension | Role in sub-tool |
 |-----------|-------------------|
-| `.ass` | Source for `convert --to srt`, `txt`, or `lrc` (not a convert target) |
-| `.srt` | Target from ASS/LRC; source for `convert --to txt`/`lrc` and `srt` edits |
-| `.lrc` | Target from SRT/ASS; source for `convert --to srt`/`txt` |
+| `.ass` | Source for `convert --to srt`, `txt`, `lrc`, or `json` (not a convert target) |
+| `.srt` | Target from ASS/LRC; source for `convert --to txt`/`lrc`/`json` and `srt` edits |
+| `.lrc` | Target from SRT/ASS; source for `convert --to srt`/`txt`/`json` |
 | `.txt` | Plain text export from SRT/ASS/LRC (not a timed subtitle format) |
+| `.json` | Structured cue export from SRT/ASS/LRC (not a round-trip subtitle format) |
 
 ---
 
@@ -141,3 +143,40 @@ Some tools use two lines with the same time for bilingual display; many players 
 ## Plain text (`convert --to txt`)
 
 Output is all dialogue lines from `.srt`, in file order, separated by newlines—timestamps and cue numbers are omitted. Treat it as a lossy, untimed extract, not a round-trippable subtitle format.
+
+---
+
+## JSON (`convert --to json`)
+
+Document type: `"format": "sub-tool-subtitles"`, `"version": 1`. Each **cue** is one SRT-style time range with raw text lines (same “one time range = one unit” rule as SRT).
+
+| Field | Meaning |
+|-------|---------|
+| `index` | 1-based cue number in export order |
+| `start_ms`, `end_ms` | Timing in milliseconds |
+| `start`, `end` | Same times as SRT timestamp strings |
+| `lines` | Text lines for that cue (array of strings) |
+
+Top-level `source.kind` is `srt`, `ass`, or `lrc`. LRC exports also set `"timing": "inferred"` because end times use the same rules as LRC → SRT (next line minus 1 ms, or `--lrc-last-ms` for the last cue).
+
+Example (SRT bilingual two-line cue):
+
+```json
+{
+  "format": "sub-tool-subtitles",
+  "version": 1,
+  "source": { "kind": "srt" },
+  "cues": [
+    {
+      "index": 1,
+      "start_ms": 10000,
+      "end_ms": 13500,
+      "start": "00:00:10,000",
+      "end": "00:00:13,500",
+      "lines": ["Welcome.", "欢迎。"]
+    }
+  ]
+}
+```
+
+Not a player format; intended for scripts, pipelines, and inspection. There is no `convert --from json`.
