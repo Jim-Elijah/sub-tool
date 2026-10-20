@@ -1,15 +1,16 @@
 # SRT formats (sub-tool)
 
-本文件说明 **sub-tool** 支持的常见 SRT 写法，以及 `srt` 子命令（`--swap`、`--drop-notes`）如何理解各 cue。  
-ASS / LRC 的跨格式约定见 [subtitle-formats.md](subtitle-formats.md)。实现细节在 `src/sub_tool/srt_cue.py`。
+This document describes common SRT layouts supported by **sub-tool** and how the `srt` subcommand (`--swap`, `--drop-notes`) interprets each cue.  
+Cross-format ASS / LRC rules: [subtitle-formats.md](subtitle-formats.md). Implementation: `src/sub_tool/srt_cue.py`.  
+Chinese (Simplified): [srt-format.zh-CN.md](srt-format.zh-CN.md).
 
-## 基本结构
+## Basic structure
 
-每个 **cue**（字幕块）由三部分组成：
+Each **cue** (subtitle block) has three parts:
 
-1. 序号（纯数字，可任意；`sub-tool srt` 会重排为 1、2、3…）
-2. 时间轴：`HH:MM:SS,mmm --> HH:MM:SS,mmm`（也接受 `.` 作毫秒分隔符）
-3. 一条或多条 **文本行**（播放器按行显示；本工具按行解析）
+1. Index (digits only; any values are fine — `sub-tool srt` renumbers to 1, 2, 3…)
+2. Time range: `HH:MM:SS,mmm --> HH:MM:SS,mmm` (`.` is also accepted as the millisecond separator)
+3. One or more **text lines** (players show them as lines; this tool parses line by line)
 
 ```srt
 1
@@ -17,27 +18,27 @@ ASS / LRC 的跨格式约定见 [subtitle-formats.md](subtitle-formats.md)。实
 Example dialogue line.
 ```
 
-空行分隔 cue。UTF-8；可选 BOM。
+Blank lines separate cues. UTF-8; optional BOM.
 
 ---
 
-## 常用格式一览
+## Layout overview
 
-| 类型 | 典型用途 | 双语？ | `--drop-notes` |
-|------|----------|--------|----------------|
-| 单语单行 | 普通对白、旁白 | 否 | 双语文件中可删（译员说明） |
-| 单语多行 `-` | 同轴多人、无 ID | 否 | 不删（多行） |
-| 双语两行 | 最常见双语 | 是 | 不删 |
-| 双语单行 ` \| ` | 紧凑双语 | 是 | 不删 |
-| `[SPEAKER_xx]:` |  diarization / 标注说话人 | 视内容 | 带标签的单行不删 |
-| 多人 + 每行 ` \| ` | 同轴多人双语 | 是 | 不删 |
-| 多人上下半段 | 原文块 + 译文块 | 是 | 不删 |
+| Type | Typical use | Bilingual? | `--drop-notes` |
+|------|-------------|------------|----------------|
+| Monolingual, one line | Dialogue, narration | No | May remove in bilingual files (translator notes) |
+| Monolingual, multi-line `-` | Same-timeline speakers, no ID | No | Not removed (multi-line) |
+| Bilingual, two lines | Most common bilingual | Yes | Not removed |
+| Bilingual, one line ` \| ` | Compact bilingual | Yes | Not removed |
+| `[SPEAKER_xx]:` | Diarization / speaker labels | Depends | Tagged single lines not removed |
+| Multi-speaker + ` \| ` per line | Same-timeline bilingual | Yes | Not removed |
+| Stacked halves | Primary block + translation block | Yes | Not removed |
 
 ---
 
-## 1. 单语字幕
+## 1. Monolingual subtitles
 
-### 1.1 单行对白
+### 1.1 Single-line dialogue
 
 ```srt
 1
@@ -45,36 +46,36 @@ Example dialogue line.
 You're an idiot!
 ```
 
-`convert --to txt` / `--to lrc`：按 cue 导出文本；`srt --swap` 无效果（仅一行）。
+`convert --to txt` / `--to lrc`: exports text per cue; `srt --swap` has no effect (one line only).
 
-### 1.2 同轴多人（无说话人 ID）
+### 1.2 Same-timeline multiple speakers (no speaker ID)
 
-每行以 **`- `** 开头表示不同说话人，仍在 **同一 cue、同一时间轴**：
-
-```srt
-1
-00:01:20,000 --> 00:01:23,500
-- 你今天几点下班？
-- 大概六点。
-```
-
-紧凑写法（同一行多个 `- ` 段）：
+Each line starting with **`- `** is a different speaker, still in **one cue, one time range**:
 
 ```srt
 1
 00:01:20,000 --> 00:01:23,500
-- 你今天几点下班？ - 大概六点。
+- What time do you get off today?
+- Around six.
 ```
 
-**不是双语**：两行都以 `-` 开头时，工具不会当作「原文 + 译文」。
+Compact form (multiple `- ` segments on one line):
+
+```srt
+1
+00:01:20,000 --> 00:01:23,500
+- What time do you get off today? - Around six.
+```
+
+**Not bilingual**: when both lines start with `-`, the tool does not treat them as primary + translation.
 
 ---
 
-## 2. 双语字幕（无说话人）
+## 2. Bilingual subtitles (no speaker tags)
 
-### 2.1 推荐：上下两行
+### 2.1 Recommended: two stacked lines
 
-第一行主语言，第二行译文；行首 **不要** 用 `-`，也 **不要** 带 `[SPEAKER_xx]:`。
+First line primary language, second line translation; lines must **not** start with `-` and must **not** include `[SPEAKER_xx]:`.
 
 ```srt
 1
@@ -83,12 +84,12 @@ Oh, my God.
 上帝啊
 ```
 
-- `srt --swap`：交换两行顺序。  
-- `convert --to lrc`：合并为 `Oh, my God. | 上帝啊`（一行）。
+- `srt --swap`: swaps the two lines.  
+- `convert --to lrc`: merges to `Oh, my God. | 上帝啊` (one line).
 
-### 2.2 单行：` | ` 分隔
+### 2.2 Single line: ` | ` separator
 
-主语言与译文之间用 **` | `**（空格-竖线-空格）：
+Join primary and translation with **` | `** (space-pipe-space):
 
 ```srt
 1
@@ -96,14 +97,14 @@ Oh, my God.
 Hello, world! | 你好，世界！
 ```
 
-- `srt --swap`：交换 ` | ` 两侧文本。  
-- 整文件若多为这种或两行双语，视为 **双语文件**。
+- `srt --swap`: swaps text on both sides of ` | `.  
+- Files that mostly use this or two-line bilingual cues are treated as **bilingual files**.
 
 ---
 
-## 3. 译员说明（translator notes）
+## 3. Translator notes
 
-制作过程中常插入 **仅一行、无翻译对、无说话人标签** 的补充说明（术语、背景），时间与对白重叠或独立：
+During production you may insert **single-line** explanations (terms, context) with no translation pair and no speaker tag, overlapping or separate from dialogue:
 
 ```srt
 4
@@ -115,17 +116,17 @@ Hello, world! | 你好，世界！
 补选  指在两个常规选举日之间
 ```
 
-特征：单行、无 ` | `、无 `[SPEAKER_xx]:`。
+Traits: one line, no ` | `, no `[SPEAKER_xx]:`.
 
-在 **双语占多数** 的文件上，`srt --drop-notes` 会 **删除** 这类 cue 并重编号；单语文件会报错退出。
+On files where **bilingual cues are the majority**, `srt --drop-notes` **removes** these cues and renumbers; monolingual files exit with an error.
 
 ---
 
-## 4. 带说话人 ID（Whisper / PyAnnote 等）
+## 4. Speaker IDs (Whisper / PyAnnote, etc.)
 
-标签格式：**`[SPEAKER_数字]:`**（大小写不敏感），写在行首。
+Tag format: **`[SPEAKER_digits]:`** (case-insensitive) at the start of a line.
 
-### 4.1 单人单语
+### 4.1 One speaker, monolingual
 
 ```srt
 1
@@ -133,7 +134,7 @@ Hello, world! | 你好，世界！
 [SPEAKER_01]: I won't be long.
 ```
 
-### 4.2 单人双语：一行 ` | `
+### 4.2 One speaker, bilingual: one line with ` | `
 
 ```srt
 1
@@ -141,9 +142,9 @@ Hello, world! | 你好，世界！
 [SPEAKER_01]: You're late when I say you're late. | 我说你迟了就是迟了
 ```
 
-`srt --swap`：保留 `[SPEAKER_01]:`，只交换 ` | ` 两侧。
+`srt --swap`: keeps `[SPEAKER_01]:`, swaps only the sides of ` | `.
 
-### 4.3 单人双语：两行同一 ID
+### 4.3 One speaker, bilingual: two lines, same ID
 
 ```srt
 1
@@ -152,13 +153,13 @@ Hello, world! | 你好，世界！
 [SPEAKER_03]: 说得没错
 ```
 
-`srt --swap`：交换两行（仍为同一说话人）。
+`srt --swap`: swaps the two lines (same speaker).
 
 ---
 
-## 5. 同轴多人 + 双语
+## 5. Same-timeline multiple speakers + bilingual
 
-### 5.1 推荐：每人一行，行内 ` | `
+### 5.1 Recommended: one line per speaker, inline ` | `
 
 ```srt
 2
@@ -167,11 +168,11 @@ Hello, world! | 你好，世界！
 [SPEAKER_02]: - I'm not late, am I? | 我没迟到吧
 ```
 
-`srt --swap`：对 **每一行** 分别交换 ` | ` 两侧（保留 `[SPEAKER_xx]: -` 前缀）。
+`srt --swap`: swaps ` | ` on **each line** separately (keeps `[SPEAKER_xx]: -` prefix).
 
-### 5.2 两行紧凑：每行多个说话人
+### 5.2 Two compact lines: multiple speakers per line
 
-原文一行、译文一行；两行中 **`[SPEAKER_xx]` 的数量与顺序必须一致**：
+One line primary, one line translation; **`[SPEAKER_xx]` count and order must match** on both lines:
 
 ```srt
 2
@@ -180,13 +181,13 @@ Hello, world! | 你好，世界！
 [SPEAKER_01]: - 你上哪儿去了  [SPEAKER_02]: - 我没迟到吧
 ```
 
-`srt --swap`：交换 **上半段行块** 与 **下半段行块**（按说话人顺序对齐，不是简单颠倒每一行）。
+`srt --swap`: swaps the **upper line block** with the **lower line block** (aligned by speaker order, not a simple per-line reversal).
 
-### 5.3 多人 + 双语上下半段（无行内 ` | `）
+### 5.3 Multiple speakers + stacked halves (no inline ` | `)
 
-同一 cue 内 **一行一句**（一个 `[SPEAKER_xx]:` + 对白）。工具 **按行** 识别说话人标签与该行文本，不会把同一 speaker 的多行合并成一条，也不会在两种语言之间做「第 N 句对第 N 句」的逐句配对。
+Within one cue, **one utterance per line** (`[SPEAKER_xx]:` + dialogue). The tool reads speaker tags **per line**; it does not merge multiple lines for one speaker into one record, and it does not pair “sentence N” in one language with “sentence N” in the other.
 
-**最少示例**（前半 2 行、后半 2 行，逐行 ID 一致）：
+**Minimal example** (2 lines in the first half, 2 in the second; matching IDs per row):
 
 ```srt
 2
@@ -197,7 +198,7 @@ Hello, world! | 你好，世界！
 [SPEAKER_02]: - 我没迟到吧
 ```
 
-**扩展示例**（前半 4 行、后半 4 行，逐行 ID 仍为 01→02→01→02）：
+**Extended example** (4 + 4 lines; IDs still 01→02→01→02 per row):
 
 ```srt
 2
@@ -212,9 +213,9 @@ Hello, world! | 你好，世界！
 [SPEAKER_02]: - 好的.
 ```
 
-**双语判定**：行数为偶数，且前半与后半 **逐行** 的 `[SPEAKER_xx]` 序列完全相同。
+**Bilingual detection**: even line count, and the `[SPEAKER_xx]` sequence in the first half **matches row-by-row** in the second half.
 
-**`srt --swap`**：只做 **整段半块对调**（后半段所有行移到前面，前半段移到后面），行内文字与标签不变。上例 swap 后为：
+**`srt --swap`**: **swaps whole halves** only (all lines from the second half move before the first); text and tags on each line stay unchanged. After swap on the extended example:
 
 ```srt
 [SPEAKER_01]: - 你上哪儿去了
@@ -227,9 +228,9 @@ Hello, world! | 你好，世界！
 [SPEAKER_02]: - Ok.
 ```
 
-若需要 **每句** 原文与译文相邻，请用 §5.1（行内 ` | `）或 §5.2（两行紧凑），不要依赖半块对调做逐句重组。
+For **adjacent primary/translation per utterance**, use §5.1 (inline ` | `) or §5.2 (two compact lines); do not rely on half-block swap for per-sentence reordering.
 
-### 5.4 无 ` | ` 的多人单语（仅一种语言）
+### 5.4 Multi-speaker monolingual (one language only, no ` | `)
 
 ```srt
 2
@@ -238,11 +239,11 @@ Hello, world! | 你好，世界！
 [SPEAKER_02]: - I'm not late, am I?
 ```
 
-只有两行且没有译文半段 → **单语**，不是双语 cue。
+Two lines and no translation half → **monolingual**, not a bilingual cue.
 
 ---
 
-## 6. 多说话人 + 单行多段 ` | `（无 ID）
+## 6. Multiple speakers + single line with multiple ` | ` segments (no ID)
 
 ```srt
 1
@@ -250,44 +251,43 @@ Hello, world! | 你好，世界！
 - Hello, world! | 你好，世界！ - How are you? | 你最近怎么样？
 ```
 
-按 **` - `** 分段，段内若有 ` | ` 则 `srt --swap` 逐段交换。适合少量紧凑 cue；复杂对白更推荐 5.1。
+Split on **` - `**; if a segment contains ` | `, `srt --swap` swaps within each segment. Fine for a few compact cues; prefer §5.1 for complex dialogue.
 
 ---
 
-## 7. 工具行为摘要
+## 7. Command summary
 
-| 命令 | 行为 |
-|------|------|
-| `srt` | 重编号；可选 `--swap` / `--shift` / `--drop-notes` |
-| `srt --swap` | 按上文规则交换主/译（见 `swap_cue_text_lines`） |
-| `srt --drop-notes` | 仅双语文件；删 §3 说明类 cue |
-| `convert --to txt` | 输出所有文本行（SRT 去 `<...>` 标签） |
-| `convert --to lrc` | 每 cue 一行；**仅** §2.1 两行无 `-`/无 SPEAKER 时变为 ` \| ` |
-| `convert --to json` | 每 cue 一条记录：`start_ms`/`end_ms` + `lines` 数组（文本行原样）；详见 [subtitle-formats.md](subtitle-formats.md) JSON 节 |
+| Command | Behavior |
+|---------|----------|
+| `srt` | Renumber; optional `--swap` / `--shift` / `--drop-notes` |
+| `srt --swap` | Swap primary/translation per rules above (see `swap_cue_text_lines`) |
+| `srt --drop-notes` | Bilingual files only; removes §3 note cues |
+| `convert --to txt` | All text lines (SRT strips `<...>` tags) |
+| `convert --to lrc` | One line per cue; **only** §2.1 two lines without `-`/SPEAKER become ` \| ` |
+| `convert --to json` | One record per cue: `start_ms`/`end_ms` + `lines` array; see JSON in [subtitle-formats.md](subtitle-formats.md) |
 
-参数可组合，例如：`sub-tool srt file.srt --drop-notes --swap`。
-
----
-
-## 8. 常见误区
-
-1. **不要把「整段英文标 SPEAKER_01、整段中文标 SPEAKER_02」当成两个说话人**  
-   若第二行本应是第一行的译文，应使用 §2、§4 或 §5 的 bilingual 写法，否则 `--swap` / LRC 会按说话人块处理。
-
-2. **` | ` 是双语分隔符，不是说话人分隔符**  
-   说话人用 `- `、`[SPEAKER_xx]:` 或分行表达。
-
-3. **播放器不解析本项目的 SPEAKER / ` | ` 规则**  
-   这些约定服务于编辑、转换与本工具；显示效果取决于播放器。
-
-4. **`--drop-notes` 不会删除** 带 ` | ` 的单行双语，也不会删除带 `[SPEAKER_xx]:` 的单行。
-
-5. **§5.3 多行半块不是「逐句翻译表」**  
-   `--swap` 只对调语言半块，不会把第 3 句英文与第 3 句中文合成一行或交换位置。
+Flags can be combined, e.g. `sub-tool srt file.srt --drop-notes --swap`.
 
 ---
 
-## 9. 如何判断「整文件是否双语」
+## 8. Common mistakes
 
-`--drop-notes` 要求文件中 **超过半数 cue** 满足 `cue_is_bilingual`（§2、§4 双语、§5 双语等）。  
-否则视为单语文件并报错。
+1. **Do not label all English as SPEAKER_01 and all Chinese as SPEAKER_02** if the second block is really translation — use §2, §4, or §5 bilingual layouts; otherwise `--swap` / LRC treat them as speaker blocks.
+
+2. **` | ` is a bilingual separator, not a speaker separator**  
+   Use `- `, `[SPEAKER_xx]:`, or separate lines for speakers.
+
+3. **Players do not implement this project’s SPEAKER / ` | ` rules**  
+   These conventions are for authoring and tooling; display depends on the player.
+
+4. **`--drop-notes` does not remove** single-line bilingual cues with ` | `, or single lines with `[SPEAKER_xx]:`.
+
+5. **§5.3 stacked halves are not a per-sentence translation table**  
+   `--swap` only swaps language halves; it does not merge or reorder sentence 3 in English with sentence 3 in Chinese.
+
+---
+
+## 9. When is a file “bilingual”?
+
+`--drop-notes` requires **more than half** of cues to satisfy `cue_is_bilingual` (§2, §4 bilingual, §5 bilingual, etc.).  
+Otherwise the file is treated as monolingual and the command errors.

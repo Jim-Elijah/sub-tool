@@ -45,10 +45,7 @@ def test_multi_speaker_per_line_pipe() -> None:
     ]
     assert cue_is_bilingual(lines)
     swapped = swap_cue_text_lines(lines)
-    assert (
-        swapped[0]
-        == "[SPEAKER_01]: - 你上哪儿去了 | Where have you been?"
-    )
+    assert swapped[0] == "[SPEAKER_01]: - 你上哪儿去了 | Where have you been?"
 
 
 def test_multi_speaker_stacked_halves() -> None:

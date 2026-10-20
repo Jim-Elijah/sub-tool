@@ -1,6 +1,6 @@
 ---
 description: Bilingual and multi-speaker conventions for SRT, ASS, LRC in sub-tool
-globs: docs/subtitle-formats.md,docs/srt-format.md,**/*.{srt,ass,lrc},src/sub_tool/**/*.{py}
+globs: docs/subtitle-formats.md,docs/srt-format.md,docs/srt-format.zh-CN.md,**/*.{srt,ass,lrc},src/sub_tool/**/*.{py}
 alwaysApply: false
 ---
 

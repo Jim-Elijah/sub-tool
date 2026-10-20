@@ -1,7 +1,7 @@
 [project]
 name = "sub-tool"
 version = "0.1.0"
-description = "A Python toolkit for subtitle conversion and utilities."
+description = "CLI for ASS/LRC/SRT conversion, txt/JSON export, and SRT edits (batch-friendly)."
 readme = "README.md"
 authors = [
     { name = "Jim-Elijah", email = "willelijah.x@gmail.com" }
@@ -20,6 +20,10 @@ classifiers = [
     "Typing :: Typed",
 ]
 dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/Jim-Elijah/sub-tool"
+Repository = "https://github.com/Jim-Elijah/sub-tool"
 
 [project.scripts]
 sub-tool = "sub_tool.cli:main"

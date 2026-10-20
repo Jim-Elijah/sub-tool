@@ -1,8 +1,10 @@
 # sub-tool
 
-A Python toolkit for subtitle conversion and utilities.
+CLI toolkit for subtitle workflows: convert among **ASS**, **LRC**, and **SRT**; export cues to **txt** or **JSON**; and edit **SRT** files (re-number, time shift, bilingual line swap, drop translator notes). Batch-friendly on single files or directory trees.
 
-**For personal use; not published to PyPI for now.**
+Repository: [github.com/Jim-Elijah/sub-tool](https://github.com/Jim-Elijah/sub-tool)
+
+**Personal project — install from GitHub; not published to PyPI.**
 
 ## Requirements
 
@@ -10,10 +12,10 @@ A Python toolkit for subtitle conversion and utilities.
 
 ## Install
 
-Not published to PyPI yet. Install from a clone:
+Install from a clone (not on PyPI):
 
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/Jim-Elijah/sub-tool.git
 cd sub-tool
 pip install .
 ```
@@ -70,7 +72,7 @@ LRC → SRT uses the next line’s timestamp (minus 1 ms) as each cue’s end ti
 
 ## Subtitle format conventions
 
-Common **SRT** layouts and `srt` edit rules: [docs/srt-format.md](docs/srt-format.md).  
+Common **SRT** layouts and `srt` edit rules: [docs/srt-format.md](docs/srt-format.md) ([中文](docs/srt-format.zh-CN.md)).  
 Broader SRT / ASS / LRC conventions: [docs/subtitle-formats.md](docs/subtitle-formats.md).
 
 ## SRT edits (`srt`)
@@ -110,6 +112,8 @@ Most subcommands accept the same input/output discovery flags:
 ## Development
 
 ```bash
+git clone https://github.com/Jim-Elijah/sub-tool.git
+cd sub-tool
 uv sync
 uv run ruff format .
 uv run ruff check .

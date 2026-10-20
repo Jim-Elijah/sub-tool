@@ -10,8 +10,8 @@ from pathlib import Path
 
 from sub_tool import __version__
 from sub_tool.convert import generate_convert, source_suffixes_for_target
-from sub_tool.lrc_to_srt import DEFAULT_LAST_CUE_MS
 from sub_tool.errors import SubToolError
+from sub_tool.lrc_to_srt import DEFAULT_LAST_CUE_MS
 from sub_tool.srt_edit import generate_srt_edit
 from sub_tool.subtitles import SRT_SUFFIXES, resolve_subtitles
 from sub_tool.timing import format_duration
